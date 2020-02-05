@@ -31,7 +31,7 @@ None
 7. Rename file <project-root>/.env-example to .env
 8. php artisan key:generate
 9. Open project directory /public/images/tesing to see screenshots from my testing process
-10. Run the project in your browser: http://localhost/
+10. Run the project in your browser: http://localhost/?url=VALID_DATA_URL
 
 ## API Reference
 

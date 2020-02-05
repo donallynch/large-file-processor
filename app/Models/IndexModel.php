@@ -34,16 +34,26 @@ class IndexModel
     {
         /* Validate */
         $validator = Validator::make($request->post(), [
-            'url' => 'nullable'
+            'url' => 'required|url'
         ]);
         if ($validator->fails()) {
             return ['status' => 400, 'errors' => $validator->errors()];
+        }
+
+        /* Retrieve URL from get parameter */
+        $url = $request->get('url');
+
+        /**
+         * Ensure URL parameter was provided in the URL
+         */
+        if ($url === null) {
+            exit('400-no-url-parameter-provided-add-parameter-to-url-and-try-again');
         }
         
         /**
          * Process file
          */
-        return $this->lineByLineFileReader->process();
+        return $this->lineByLineFileReader->process($url);
     }
 }
 

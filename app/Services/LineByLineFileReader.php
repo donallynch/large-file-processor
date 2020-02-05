@@ -4,6 +4,9 @@ namespace App\Services;
 
 /**
  * Class LineByLineFileReader
+ *
+ *  DRIVER: http://localhost/?url=DATA_VALID_URL
+ *
  * @package App\Services
  */
 class LineByLineFileReader
@@ -46,11 +49,12 @@ class LineByLineFileReader
     /**
      * Determine number of users with the specified resolution
      *
+     * @param string $url
      * @return array
      */
-    public function process()
+    public function process(string $url)
     {
-        $this->acquireFile();
+        $this->acquireFile($url);
 
         /**
          * Read massive file line by line
@@ -136,10 +140,10 @@ class LineByLineFileReader
     /**
      * @return bool
      */
-    private function acquireFile()
+    private function acquireFile(string $url)
     {
         /* Download and decompress requested (gzipped/compressed) file */
-        $file = file_get_contents($this->compressionPath . $this->requestedFile);
+        $file = file_get_contents($this->compressionPath . $url);
 
         /* If file exists already */
         if (file_exists($this->inputFilePath)) {

@@ -11,11 +11,6 @@ return [
     */
 
     /**
-     * Define location of file to download
-     */
-    'REQUESTED_FILE' => 'https://s3.amazonaws.com/swrve-public/full_stack_programming_test/test_data.csv.gz',
-
-    /**
      * After downloading file put it at this location for reading
      */
     'INPUT_FILE_PATH' => 'data/data.csv',
