@@ -8,15 +8,16 @@ namespace App\Services;
  */
 class LineByLineFileReader
 {
-    private $requestedFile = "https://s3.amazonaws.com/swrve-public/full_stack_programming_test/test_data.csv.gz";
-    private $compressionPath = 'compress.zlib://';
-    private $inputFilePath = 'data/data.csv';
-    private $badDate = '1970-01-01 00:00:00';
+    private $requestedFile;
+    private $inputFilePath;
     private $earliestDate;
+    private $compressionPath = 'compress.zlib://';
+    private $badDate = '1970-01-01 00:00:00';
     private $earliestUser = -1;
-    private $spend = '0';
+    private $spend = 0;
     private $count = 0;
 
+    const INITIAL_ROW = 'user_id';
     const BAD_REQUEST = 400;
     const MD5_LENGTH = 32;
     const TARGET_WIDTH = 640;
@@ -28,17 +29,22 @@ class LineByLineFileReader
     const DEVICE_HEIGHT = 4;
     const DEVICE_WIDTH = 5;
     const LINE_ITEM_COUNT = 6;
+    const DATE_FORMAT = 'Y-m-d H:i:s';
+    const READ_ONLY = "r";
+    const COMMA = ',';
 
     /**
      * LineByLineFileReader constructor.
      */
     public function __construct()
     {
-        $this->earliestDate = date('Y-m-d H:i:s');
+        $this->requestedFile = config('app.REQUESTED_FILE');
+        $this->inputFilePath = config('app.INPUT_FILE_PATH');
+        $this->earliestDate = date(self::DATE_FORMAT);
     }
 
     /**
-     * Determine number of users with a device resolution of 640x960 (width x height)
+     * Determine number of users with the specified resolution
      *
      * @return array
      */
@@ -50,7 +56,7 @@ class LineByLineFileReader
          * Read massive file line by line
          *  The maximum memory (RAM) needed depends on the longest line in the input file
          */
-        $handle = fopen("data/data.csv", "r");
+        $handle = fopen($this->inputFilePath, self::READ_ONLY);
 
         /* If there's a problem location or accessing file */
         if (!$handle) {
@@ -64,7 +70,7 @@ class LineByLineFileReader
         while (($line = fgets($handle)) !== false) {
 
             /* Convert single line to array */
-            $line = explode(',', $line);
+            $line = explode(self::COMMA, $line);
 
             /* Basic line validation */
             if (!is_array($line) || count($line)!== self::LINE_ITEM_COUNT) {
@@ -72,7 +78,7 @@ class LineByLineFileReader
             }
 
             /* Skip initial row with column names */
-            if ($line[0] === 'user_id') {
+            if ($line[self::USER_ID] === self::INITIAL_ROW) {
                 continue;
             }
 
@@ -93,7 +99,7 @@ class LineByLineFileReader
                 exit('400-validation-failed');
             }
             /* Validate date */
-            $date = date('Y-m-d H:i:s', strtotime($line[self::DATE_JOINED]));
+            $date = date(self::DATE_FORMAT, strtotime($line[self::DATE_JOINED]));
             if ($date === $this->badDate) {
                 exit('400-date-validation-failed');
             }
@@ -107,7 +113,7 @@ class LineByLineFileReader
             }
 
             /* Calculate earliest date */
-            if ($line[1] < $this->earliestDate) {
+            if ($line[self::DATE_JOINED] < $this->earliestDate) {
                 $this->earliestDate = $line[self::DATE_JOINED];
                 $this->earliestUser = $line[self::USER_ID];
             }
