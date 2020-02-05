@@ -37,7 +37,7 @@ class IndexModel
             'url' => 'required|url'
         ]);
         if ($validator->fails()) {
-            return ['status' => 400, 'errors' => $validator->errors()];
+            exit("400_bad_request_url_parameter_{$validator->errors()->get('url')[0]}");
         }
 
         /* Retrieve URL from get parameter */
