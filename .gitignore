@@ -1,0 +1,16 @@
+/node_modules
+/public/hot
+/public/images/photo-albums
+/public/storage
+/storage/*.key
+/vendor
+/.idea
+/.vscode
+/.vagrant
+/laradock
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+.env
+composer.lock
