@@ -142,17 +142,26 @@ class LineByLineFileReader
      */
     private function acquireFile(string $url)
     {
-        /* Download and decompress requested (gzipped/compressed) file */
-        $file = file_get_contents($this->compressionPath . $url);
+        /**
+         * Try to acquire input file
+         *  File may not exist or may be corrupt
+         *  Throw exception if there's an issue
+         */
+        try {
+            /* Download and decompress requested (gzipped/compressed) file */
+            $file = file_get_contents($this->compressionPath . $url);
 
-        /* If file exists already */
-        if (file_exists($this->inputFilePath)) {
-            unlink($this->inputFilePath);
+            /* If file exists already */
+            if (file_exists($this->inputFilePath)) {
+                unlink($this->inputFilePath);
+            }
+
+            /* Touch and put contents */
+            touch($this->inputFilePath);
+            file_put_contents($this->inputFilePath, $file);
+        } catch (\Exception $e) {
+            exit('400-error-while-downloading-input-file');
         }
-
-        /* Touch and put contents */
-        touch($this->inputFilePath);
-        file_put_contents($this->inputFilePath, $file);
 
         return true;
     }
