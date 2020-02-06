@@ -11,15 +11,16 @@ namespace App\Services;
  */
 class LineByLineFileReader
 {
-    private $requestedFile;
-    private $inputFilePath;
-    private $earliestDate;
-    private $compressionPath = 'compress.zlib://';
-    private $badDate = '1970-01-01 00:00:00';
-    private $earliestUser = -1;
-    private $spend = 0;
-    private $count = 0;
+    /** @var array $result */
+    private $result;
 
+    private $badDate = '1970-01-01 00:00:00';
+    private $compressionPath = 'compress.zlib://';
+    private $count = 0;
+    private $earliestDate;
+    private $earliestUser = -1;
+    private $inputFilePath;
+    private $spend = 0;
     const INITIAL_ROW = 'user_id';
     const BAD_REQUEST = 400;
     const MD5_LENGTH = 32;
@@ -41,7 +42,6 @@ class LineByLineFileReader
      */
     public function __construct()
     {
-        $this->requestedFile = config('app.REQUESTED_FILE');
         $this->inputFilePath = config('app.INPUT_FILE_PATH');
         $this->earliestDate = date(self::DATE_FORMAT);
     }
@@ -50,10 +50,11 @@ class LineByLineFileReader
      * Determine number of users with the specified resolution
      *
      * @param string $url
-     * @return array
+     * @return $this
      */
     public function process(string $url)
     {
+        /* Acquire/download specified file */
         $this->acquireFile($url);
 
         /**
@@ -67,9 +68,7 @@ class LineByLineFileReader
             exit(self::BAD_REQUEST);
         }
 
-        /**
-         * Read single line of file (to avoid loading massive file into RAM/Memory)
-         */
+        /* Read single line of file (to avoid loading massive file into RAM/Memory) */
         $i = 0;
         while (($line = fgets($handle)) !== false) {
 
@@ -92,7 +91,7 @@ class LineByLineFileReader
             $line[4] = floatval($line[self::DEVICE_HEIGHT]);
             $line[5] = floatval($line[self::DEVICE_WIDTH]);
 
-            /* Validate line */
+            /* Validate line of file  */
             if (!is_string($line[self::USER_ID])
                 || strlen($line[self::USER_ID]) !== self::MD5_LENGTH
                 || !is_numeric($line[self::SPEND])
@@ -102,6 +101,7 @@ class LineByLineFileReader
             ) {
                 exit('400-validation-failed');
             }
+
             /* Validate date */
             $date = date(self::DATE_FORMAT, strtotime($line[self::DATE_JOINED]));
             if ($date === $this->badDate) {
@@ -128,13 +128,24 @@ class LineByLineFileReader
         /* Close file handler */
         fclose($handle);
 
-        return [
+        /* Set result */
+        $this->result = [
             'totalCountOfUsers' => $i,
             'countLargeScreenUsers' => $this->count,
             'totalSpendDollars' => $this->spend,
             'earliestSignupDate' => $this->earliestDate,
             'earliestUserId' => $this->earliestUser,
         ];
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getResult()
+    {
+        return $this->result;
     }
 
     /**
@@ -144,8 +155,7 @@ class LineByLineFileReader
     {
         /**
          * Try to acquire input file
-         *  File may not exist or may be corrupt
-         *  Throw exception if there's an issue
+         *  File may not exist or may be corrupt: Throw exception if there's an issue
          */
         try {
             /* Download and decompress requested (gzipped/compressed) file */
@@ -153,10 +163,11 @@ class LineByLineFileReader
 
             /* If file exists already */
             if (file_exists($this->inputFilePath)) {
+                /* Delete it */
                 unlink($this->inputFilePath);
             }
 
-            /* Touch and put contents */
+            /* Re-download file: Touch and put contents */
             touch($this->inputFilePath);
             file_put_contents($this->inputFilePath, $file);
         } catch (\Exception $e) {

@@ -32,7 +32,7 @@ class IndexModel
      */
     public function index(Request $request)
     {
-        /* Validate */
+        /* Validate request */
         $validator = Validator::make($request->post(), [
             'url' => 'required|url'
         ]);
@@ -43,17 +43,17 @@ class IndexModel
         /* Retrieve URL from get parameter */
         $url = $request->get('url');
 
-        /**
-         * Ensure URL parameter was provided in the URL
-         */
+        /* Ensure URL parameter was provided in the URL */
         if ($url === null) {
             exit('400-no-url-parameter-provided-add-parameter-to-url-and-try-again');
         }
         
         /**
-         * Process file
+         * Process file and return result
          */
-        return $this->lineByLineFileReader->process($url);
+        return $this->lineByLineFileReader
+            ->process($url)
+            ->getResult();
     }
 }
 
