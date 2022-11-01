@@ -20,7 +20,7 @@
         "vue": "^2.5.7"
     },
     "dependencies": {
-        "gulp": "^3.9.1",
+        "gulp": "^4.0.2",
         "tempusdominus-bootstrap-4": "^5.1.2"
     }
 }
